@@ -1,0 +1,68 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.App .header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3rem;
+  padding: 0.5rem 1.5rem;
+}
+
+.App .body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+}
+
+.App__try-now-button {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #646cff;
+  color: white;
+  cursor: pointer;
+}
+
+.App__try-now-button:hover {
+  background-color: #535bf2;
+}
+
+.App__error-message {
+  max-width: 40rem;
+  margin: 0 auto;
+  color: #ff6b6b;
+  text-align: left;
+}
+
+.App__error-message pre {
+  white-space: pre-wrap;
+}
+
+.App__info {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.footer {
+  margin-top: auto;
+  padding: 1.5rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.Loading__description {
+  max-width: 32rem;
+  margin: 1rem auto 0;
+}

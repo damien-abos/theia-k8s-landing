@@ -1,0 +1,14 @@
+.header p {
+  margin: 0;
+}
+
+.header svg {
+  width: 2rem;
+  height: 2rem;
+  fill: currentColor;
+}
+
+.header a {
+  display: inline-flex;
+  align-items: center;
+}

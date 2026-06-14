@@ -1,0 +1,23 @@
+.spinner-container {
+  display: flex;
+  justify-content: center;
+}
+
+.custom-spinner {
+  animation: spinner-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spinner-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

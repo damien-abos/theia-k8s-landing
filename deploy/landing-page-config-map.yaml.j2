@@ -1,0 +1,45 @@
+# ConfigMap fournissant config.js (window.theiaCloudConfig) à la landing page custom.
+#
+# Forké du template officiel du chart theia-cloud
+# (charts/theia-cloud/templates/landing-page-config-map.yaml) : le bloc keycloak*
+# est remplacé par les champs oidc* lus par src/auth/config.ts.
+#
+# À déployer via le rôle Ansible (kubernetes.core.k8s, lookup('template', ...)),
+# puis monté en volume sur /usr/share/nginx/html/config.js du conteneur landing-page.
+# Le chart officiel theia-cloud doit avoir landingPage désactivé (on déploie notre
+# propre Deployment + image + ce ConfigMap), OU son ConfigMap surchargé.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: landing-page-config
+  namespace: "{{ theia_cloud_namespace | default('theia-cloud') }}"
+data:
+  config.js: |
+    window.theiaCloudConfig = {
+      // --- theia-cloud (consommé par @eclipse-theiacloud/common) ---
+      appName: "{{ landing_app_name | default('Formation Kubernetes') }}",
+      appDefinition: "{{ app_definition_name }}",
+      serviceUrl: "https://{{ service_host }}",
+      serviceAuthToken: "{{ vault_service_auth_token }}",
+      useEphemeralStorage: {{ use_ephemeral_storage | default(false) | lower }},
+      logoFileExtension: "{{ logo_file_extension | default('svg') }}",
+{% if additional_apps is defined and additional_apps | length > 0 %}
+      additionalApps: {{ additional_apps | to_json }},
+{% endif %}
+{% if landing_info_title is defined %}
+      infoTitle: "{{ landing_info_title }}",
+{% endif %}
+{% if landing_info_text is defined %}
+      infoText: "{{ landing_info_text }}",
+{% endif %}
+{% if landing_loading_text is defined %}
+      loadingText: "{{ landing_loading_text }}",
+{% endif %}
+
+      // --- Authentification OIDC (Dex) — remplace les champs keycloak* ---
+      useOidc: {{ use_oidc | default(true) | lower }},
+      oidcAuthority: "https://{{ dex_host }}/dex",
+      oidcClientId: "{{ dex_client_id | default('theia-cloud') }}",
+      oidcScope: "{{ oidc_scope | default('openid email profile') }}",
+      oidcTokenType: "{{ oidc_token_type | default('access_token') }}"
+    };
