@@ -16,10 +16,10 @@ updates:
       prefix: "ci"
       include: "scope"
     groups:
+      # Toutes les actions regroupées dans un seul PR (tous types d'update).
       github-actions:
-        update-types:
-          - "minor"
-          - "patch"
+        patterns:
+          - "*"
 
   # Docker (image de base du Dockerfile)
   - package-ecosystem: "docker"
@@ -53,17 +53,8 @@ updates:
       prefix: "npm"
       include: "scope"
     groups:
-      # Packages theia-cloud épinglés sur le theia_cloud_version de l'IaC :
-      # à mettre à jour de façon contrôlée (tous types regroupés).
-      theia-cloud:
-        patterns:
-          - "@eclipse-theiacloud/*"
-      # Reste des dépendances : minor/patch regroupés.
-      other:
+      # Toutes les dépendances node regroupées dans un seul PR (tous types d'update,
+      # y compris @eclipse-theiacloud/* épinglé sur le theia_cloud_version de l'IaC).
+      npm:
         patterns:
           - "*"
-        exclude-patterns:
-          - "@eclipse-theiacloud/*"
-        update-types:
-          - "minor"
-          - "patch"
