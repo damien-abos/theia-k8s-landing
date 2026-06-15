@@ -34,13 +34,13 @@ function getInitialAppSelection(config: ReturnType<typeof getTheiaCloudConfig>):
 }
 
 function App() {
-  // Tous les hooks sont appelés inconditionnellement, AVANT tout early return
-  // (règle des hooks React). Le cas `config === undefined` est traité ensuite.
+  // All hooks are called unconditionally, BEFORE any early return
+  // (React rules of hooks). The `config === undefined` case is handled below.
   const [config] = useState(() => getTheiaCloudConfig());
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
 
-  // Authentification : remplace le bloc keycloak-js de la landing page upstream.
+  // Authentication: replaces the keycloak-js block from the upstream landing page.
   const { email, token, enabled: useOidc, login, logout } = useAuth();
 
   const [selectedAppName, setSelectedAppName] = useState(() => getInitialAppSelection(config).appName);

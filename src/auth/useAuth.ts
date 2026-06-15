@@ -5,22 +5,22 @@ import { getOidcConfig } from './config';
 import { OidcAuthProvider } from './OidcAuthProvider';
 
 export interface AuthState {
-  /** Email de l'utilisateur authentifié, ou undefined. */
+  /** Email of the authenticated user, or undefined. */
   email?: string;
-  /** Token Bearer pour le service theia-cloud, ou undefined. */
+  /** Bearer token for the theia-cloud service, or undefined. */
   token?: string;
-  /** true quand l'auth est activée par la config (useOidc). */
+  /** true when auth is enabled by config (useOidc). */
   enabled: boolean;
-  /** true une fois la tentative de restauration de session terminée. */
+  /** true once the session restore attempt has completed. */
   ready: boolean;
-  /** Démarre un login interactif. */
+  /** Starts an interactive login. */
   login: () => void;
-  /** Déconnecte l'utilisateur. */
+  /** Logs out the user. */
   logout: () => void;
 }
 
-// Singleton module-level : un seul UserManager pour toute l'app, instancié une fois.
-// (Équivalent du `keycloakConfig`/`initialized` global de la landing page upstream.)
+// Module-level singleton: a single UserManager for the whole app, instantiated once.
+// (Equivalent of the global `keycloakConfig`/`initialized` in the upstream landing page.)
 let provider: AuthProvider | undefined;
 let providerInitialized = false;
 

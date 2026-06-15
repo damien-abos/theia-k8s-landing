@@ -5,8 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Try Now</title>
-    <!-- Config injectée au runtime : montée par le ConfigMap K8s en prod,
-         servie depuis public/config.js en dev. Doit être chargée AVANT le bundle. -->
+    <!-- Runtime config: mounted by K8s ConfigMap in production,
+         served from public/config.js in dev. Must be loaded BEFORE the bundle. -->
     <script src="./config.js"></script>
   </head>
   <body>

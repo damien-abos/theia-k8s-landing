@@ -1,26 +1,26 @@
 /**
- * Lecture de la configuration OIDC injectée au runtime via `window.theiaCloudConfig`
- * (fichier config.js chargé par index.html avant le bundle).
+ * Reads the OIDC configuration injected at runtime via `window.theiaCloudConfig`
+ * (config.js file loaded by index.html before the bundle).
  *
- * Les champs non-auth (serviceUrl, serviceAuthToken, appDefinition, appName,
- * useEphemeralStorage, additionalApps, ...) sont lus séparément par
- * `@eclipse-theiacloud/common` via `getTheiaCloudConfig()`. Ici on ne s'occupe que
- * de la partie authentification, avec des champs `oidc*` propres à cette landing
- * page (en remplacement des champs `keycloak*` de l'upstream).
+ * Non-auth fields (serviceUrl, serviceAuthToken, appDefinition, appName,
+ * useEphemeralStorage, additionalApps, ...) are read separately by
+ * `@eclipse-theiacloud/common` via `getTheiaCloudConfig()`. Here we only handle
+ * the authentication part, using `oidc*` fields specific to this landing page
+ * (replacing the `keycloak*` fields from upstream).
  */
 
 export type OidcTokenType = 'access_token' | 'id_token';
 
 export interface OidcConfig {
-  /** Active l'authentification OIDC (remplace `useKeycloak`). */
+  /** Enables OIDC authentication (replaces `useKeycloak`). */
   useOidc: boolean;
-  /** Issuer OIDC (Dex), ex. `https://<host>/dex`. */
+  /** OIDC issuer (Dex), e.g. `https://<host>/dex`. */
   oidcAuthority: string;
-  /** Identifiant du static client public Dex, ex. `theia-cloud`. */
+  /** Dex public static client ID, e.g. `theia-cloud`. */
   oidcClientId: string;
-  /** Scopes demandés. Défaut: `openid email profile`. */
+  /** Requested scopes. Default: `openid email profile`. */
   oidcScope: string;
-  /** Token envoyé en Bearer au service theia-cloud. Défaut: `access_token`. */
+  /** Token sent as Bearer to the theia-cloud service. Default: `access_token`. */
   oidcTokenType: OidcTokenType;
 }
 
@@ -36,22 +36,22 @@ const DEFAULT_SCOPE = 'openid email profile';
 const DEFAULT_TOKEN_TYPE: OidcTokenType = 'access_token';
 
 /**
- * Renvoie la configuration OIDC validée, ou `undefined` si l'auth est désactivée.
- * Lève une erreur si `useOidc` est vrai mais que les champs requis manquent — un
- * échec précoce et explicite vaut mieux qu'une redirection cassée plus tard.
+ * Returns the validated OIDC config, or `undefined` if auth is disabled.
+ * Throws if `useOidc` is true but required fields are missing — an early,
+ * explicit failure is better than a broken redirect later.
  */
 export function getOidcConfig(): OidcConfig | undefined {
-  // `window.theiaCloudConfig` est typé par @eclipse-theiacloud/common (champs
-  // theia-cloud uniquement). Les champs `oidc*` y cohabitent au runtime ; on lit
-  // donc l'objet via un cast plutôt qu'en redéclarant le global (ce qui entrerait
-  // en conflit avec la déclaration du common).
+  // `window.theiaCloudConfig` is typed by @eclipse-theiacloud/common (theia-cloud
+  // fields only). The `oidc*` fields coexist at runtime; we read the object via
+  // a cast rather than re-declaring the global (which would conflict with the
+  // common package's declaration).
   const raw = window.theiaCloudConfig as unknown as RawOidcConfig | undefined;
   if (!raw || raw.useOidc !== true) {
     return undefined;
   }
   if (!raw.oidcAuthority || !raw.oidcClientId) {
     throw new Error(
-      'OIDC config invalide: `oidcAuthority` et `oidcClientId` sont requis quand `useOidc` est activé.'
+      'Invalid OIDC config: `oidcAuthority` and `oidcClientId` are required when `useOidc` is enabled.'
     );
   }
   return Object.freeze({

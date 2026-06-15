@@ -5,8 +5,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Le bundle est servi par nginx ; config.js est monté séparément (ConfigMap K8s)
-    // et ne doit donc PAS être inliné par Vite.
+    // The bundle is served by nginx; config.js is mounted separately (K8s ConfigMap)
+    // and must NOT be inlined by Vite.
     assetsInlineLimit: 0
   }
 });

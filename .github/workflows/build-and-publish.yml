@@ -10,7 +10,7 @@ on:
     branches:
       - main
   schedule:
-    # Re-scan hebdomadaire pour détecter les nouvelles CVE
+    # Weekly re-scan to detect new CVEs
     - cron: '0 6 * * 1'
   workflow_dispatch:
 
@@ -23,7 +23,7 @@ env:
   DOCKERHUB_IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/theia-k8s-landing
 
 jobs:
-  # Qualité : lint + build TS/Vite avant de construire l'image.
+  # Quality gate: lint + TS/Vite build before building the image.
   ci:
     name: Lint and build
     runs-on: ubuntu-latest
@@ -106,7 +106,7 @@ jobs:
             type=sha,prefix=sha-,format=short
           labels: |
             org.opencontainers.image.title=Theia Cloud landing page (OIDC/Dex)
-            org.opencontainers.image.description=Landing page theia-cloud forkée pour l'authentification OIDC via Dex au lieu de Keycloak
+            org.opencontainers.image.description=Forked theia-cloud landing page with OIDC authentication via Dex instead of Keycloak
             org.opencontainers.image.authors=${{ github.repository_owner }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
             org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/README.md

@@ -16,7 +16,7 @@ updates:
       prefix: "ci"
       include: "scope"
     groups:
-      # Toutes les actions regroupées dans un seul PR (tous types d'update).
+      # All actions grouped into a single PR (all update types).
       github-actions:
         patterns:
           - "*"
@@ -53,8 +53,8 @@ updates:
       prefix: "npm"
       include: "scope"
     groups:
-      # Toutes les dépendances node regroupées dans un seul PR (tous types d'update,
-      # y compris @eclipse-theiacloud/* épinglé sur le theia_cloud_version de l'IaC).
+      # All npm dependencies grouped into a single PR (all update types,
+      # including @eclipse-theiacloud/* pinned to the IaC theia_cloud_version).
       npm:
         patterns:
           - "*"

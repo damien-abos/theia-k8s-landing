@@ -1,13 +1,13 @@
-# ConfigMap fournissant config.js (window.theiaCloudConfig) à la landing page custom.
+# ConfigMap providing config.js (window.theiaCloudConfig) to the custom landing page.
 #
-# Forké du template officiel du chart theia-cloud
-# (charts/theia-cloud/templates/landing-page-config-map.yaml) : le bloc keycloak*
-# est remplacé par les champs oidc* lus par src/auth/config.ts.
+# Forked from the official chart template
+# (charts/theia-cloud/templates/landing-page-config-map.yaml): the keycloak*
+# block is replaced by the oidc* fields read by src/auth/config.ts.
 #
-# À déployer via le rôle Ansible (kubernetes.core.k8s, lookup('template', ...)),
-# puis monté en volume sur /usr/share/nginx/html/config.js du conteneur landing-page.
-# Le chart officiel theia-cloud doit avoir landingPage désactivé (on déploie notre
-# propre Deployment + image + ce ConfigMap), OU son ConfigMap surchargé.
+# Deploy via the Ansible role (kubernetes.core.k8s, lookup('template', ...)),
+# then mount as a volume at /usr/share/nginx/html/config.js in the landing-page container.
+# The official theia-cloud chart must have landingPage disabled (we deploy our own
+# Deployment + image + this ConfigMap), OR its ConfigMap overridden.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,8 +16,8 @@ metadata:
 data:
   config.js: |
     window.theiaCloudConfig = {
-      // --- theia-cloud (consommé par @eclipse-theiacloud/common) ---
-      appName: "{{ landing_app_name | default('Formation Kubernetes') }}",
+      // --- theia-cloud (consumed by @eclipse-theiacloud/common) ---
+      appName: "{{ landing_app_name | default('Kubernetes Training') }}",
       appDefinition: "{{ app_definition_name }}",
       serviceUrl: "https://{{ service_host }}",
       serviceAuthToken: "{{ vault_service_auth_token }}",
@@ -36,7 +36,7 @@ data:
       loadingText: "{{ landing_loading_text }}",
 {% endif %}
 
-      // --- Authentification OIDC (Dex) — remplace les champs keycloak* ---
+      // --- OIDC authentication (Dex) — replaces keycloak* fields ---
       useOidc: {{ use_oidc | default(true) | lower }},
       oidcAuthority: "https://{{ dex_host }}/dex",
       oidcClientId: "{{ dex_client_id | default('theia-cloud') }}",

@@ -1,29 +1,29 @@
-// Exemple de configuration runtime.
+// Runtime configuration example.
 //
-// En PRODUCTION, ce fichier est généré et monté par le ConfigMap Helm
-// (deploy/landing-page-config-map.yaml.j2) ; ne pas committer la version réelle.
+// In PRODUCTION, this file is generated and mounted by the Helm ConfigMap
+// (deploy/landing-page-config-map.yaml.j2); do not commit the real version.
 //
-// En DÉVELOPPEMENT, copier ce fichier en `public/config.js` (gitignoré) et adapter
-// les valeurs vers une instance Dex + un service theia-cloud de test.
+// In DEVELOPMENT, copy this file to `public/config.js` (git-ignored) and adapt
+// the values to point to a Dex instance + a test theia-cloud service.
 window.theiaCloudConfig = {
-  // --- theia-cloud (consommé par @eclipse-theiacloud/common) ---
-  appName: 'Formation Kubernetes',
+  // --- theia-cloud (consumed by @eclipse-theiacloud/common) ---
+  appName: 'Kubernetes Training',
   appDefinition: 'theia-k8s',
   serviceUrl: 'https://service.<base-host>',
-  serviceAuthToken: '<token-anti-spam-du-vault>',
+  serviceAuthToken: '<anti-spam-token-from-vault>',
   useEphemeralStorage: false,
-  // additionalApps: [{ appId: 'autre-app', appName: 'Autre App' }],
+  // additionalApps: [{ appId: 'another-app', appName: 'Another App' }],
   logoFileExtension: 'svg',
   // disableInfo: false,
   // infoTitle: '...',
   // infoText: '...',
   // loadingText: '...',
 
-  // --- Authentification OIDC (Dex) — remplace les champs keycloak* ---
+  // --- OIDC authentication (Dex) — replaces keycloak* fields ---
   useOidc: true,
   oidcAuthority: 'https://<base-host>/dex',
   oidcClientId: 'theia-cloud',
   oidcScope: 'openid email profile',
-  // 'access_token' (défaut, conforme quarkus.oidc en mode service) ou 'id_token'.
+  // 'access_token' (default, matches quarkus.oidc in service mode) or 'id_token'.
   oidcTokenType: 'access_token'
 };

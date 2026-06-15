@@ -5,8 +5,8 @@ import React from 'react';
 interface HeaderProps {
   email: string | undefined;
   authenticate: () => void;
-  // Diffère de la landing page upstream (Keycloak) : oidc-client-ts déclenche le
-  // logout par une fonction (signoutRedirect), pas par une URL statique.
+  // Differs from the upstream landing page (Keycloak): oidc-client-ts triggers
+  // logout via a function (signoutRedirect), not a static URL.
   logout: (() => void) | undefined;
 }
 

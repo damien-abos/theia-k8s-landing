@@ -1,28 +1,28 @@
 /**
- * Abstraction d'authentification : isole le reste de l'application du fournisseur
- * OIDC concret. App.tsx et les composants ne dépendent que de cette interface, pas
- * de oidc-client-ts (ni, à l'origine, de keycloak-js).
+ * Authentication abstraction: isolates the rest of the application from the
+ * concrete OIDC provider. App.tsx and components depend only on this interface,
+ * not on oidc-client-ts (nor, originally, on keycloak-js).
  */
 
 export interface AuthResult {
   email?: string;
-  /** Token à envoyer en `Authorization: Bearer` au service theia-cloud. */
+  /** Token to send as `Authorization: Bearer` to the theia-cloud service. */
   token?: string;
 }
 
 export interface AuthProvider {
   /**
-   * Tente de restaurer une session existante sans redirection (équivalent du
-   * `check-sso` de Keycloak). Inclut la finalisation du retour de callback.
+   * Attempts to restore an existing session without a redirect (equivalent of
+   * Keycloak's `check-sso`). Includes finalizing the callback return.
    */
   init(): Promise<AuthResult>;
 
-  /** Démarre un login interactif (redirection vers l'IdP). */
+  /** Starts an interactive login (redirect to the IdP). */
   login(): Promise<void>;
 
-  /** Déconnecte l'utilisateur (redirection de logout). */
+  /** Logs out the user (logout redirect). */
   logout(): Promise<void>;
 
-  /** Token courant, ou `undefined` si non authentifié. */
+  /** Current token, or `undefined` if not authenticated. */
   getToken(): string | undefined;
 }

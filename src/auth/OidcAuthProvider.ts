@@ -3,14 +3,14 @@ import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { AuthProvider, AuthResult } from './AuthProvider';
 import { OidcConfig } from './config';
 
-/** Chemin de la route de callback OIDC (cf. nginx SPA fallback + main.tsx). */
+/** Path of the OIDC callback route (see nginx SPA fallback + main.tsx). */
 export const CALLBACK_PATH = '/callback';
-/** Page d'iframe de renouvellement silencieux (cf. public/silent-renew.html). */
+/** Silent renewal iframe page (see public/silent-renew.html). */
 export const SILENT_RENEW_PATH = '/silent-renew.html';
 
 /**
- * Implémentation OIDC (Authorization Code + PKCE, client public) basée sur
- * oidc-client-ts. Conçue pour Dex mais agnostique du fournisseur.
+ * OIDC implementation (Authorization Code + PKCE, public client) based on
+ * oidc-client-ts. Designed for Dex but provider-agnostic.
  */
 export class OidcAuthProvider implements AuthProvider {
   private readonly userManager: UserManager;
@@ -27,20 +27,20 @@ export class OidcAuthProvider implements AuthProvider {
       response_type: 'code',
       scope: config.oidcScope,
       automaticSilentRenew: true,
-      // Persiste la session entre rechargements (équivalent check-sso).
+      // Persists the session across page reloads (equivalent of check-sso).
       userStore: new WebStorageStateStore({ store: window.localStorage })
     });
   }
 
   async init(): Promise<AuthResult> {
-    // Si on revient de l'IdP, finaliser l'échange code→token avant tout.
+    // If returning from the IdP, complete the code→token exchange first.
     if (window.location.pathname === CALLBACK_PATH) {
       try {
         this.user = await this.userManager.signinRedirectCallback();
       } catch (err) {
-        console.error('OIDC: échec de la finalisation du callback', err);
+        console.error('OIDC: callback finalization failed', err);
       }
-      // Nettoyer l'URL (retirer ?code=&state=) sans recharger la page.
+      // Clean the URL (remove ?code=&state=) without reloading the page.
       window.history.replaceState({}, document.title, window.location.origin + '/');
     } else {
       this.user = await this.userManager.getUser();

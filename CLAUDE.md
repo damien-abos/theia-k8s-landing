@@ -1,111 +1,111 @@
 # CLAUDE.md
 
-Contexte projet pour Claude Code. Lis ce fichier en premier avant toute modification.
+Project context for Claude Code. Read this file first before making any changes.
 
-## Objectif
+## Objective
 
-Landing page [theia-cloud](https://github.com/eclipse-theia/theia-cloud) **forkée**
-pour authentifier les participants via **OIDC/Dex** au lieu de Keycloak. C'est une
-brique de la plateforme de formation Kubernetes (l'IaC Ansible/Helm vit dans des
-dépôts voisins : `theia-training`, `k8s-theia`).
+**Forked** [theia-cloud](https://github.com/eclipse-theia/theia-cloud) landing page
+to authenticate participants via **OIDC/Dex** instead of Keycloak. This is one
+component of the Kubernetes training platform (Ansible/Helm IaC lives in sibling
+repositories: `theia-training`, `k8s-theia`).
 
-> ⚠️ Ce changement **invalide la décision d'architecture #4 (Keycloak)** figée dans
-> le `CLAUDE.md` racine de l'IaC. La migration du rôle Keycloak et le déploiement
-> de Dex sont **hors périmètre de ce dépôt**.
+> ⚠️ This change **invalidates architecture decision #4 (Keycloak)** frozen in
+> the IaC root `CLAUDE.md`. Migrating the Keycloak role and deploying Dex are
+> **out of scope for this repository**.
 
-## Ce que fait la landing page (et ce qu'elle ne fait pas)
+## What the landing page does (and does not do)
 
-Pur **client HTTP du *service* theia-cloud**. Flux :
-1. Authentifie l'utilisateur en OIDC → `email` + token.
-2. `POST {serviceUrl}/service` : `LaunchRequest` dans le **body** + token OIDC en
+A pure **HTTP client of the theia-cloud *service***. Flow:
+1. Authenticates the user via OIDC → `email` + token.
+2. `POST {serviceUrl}/service`: `LaunchRequest` in the **body** + OIDC token in
    `Authorization: Bearer`.
-3. Redirige (`location.replace`) vers l'URL de session de l'IDE.
+3. Redirects (`location.replace`) to the IDE session URL.
 
-Elle ne touche **jamais** aux CRD ni au chart `theia-cloud-base` : c'est
-l'**opérateur** qui crée les ressources K8s (AppDefinition→Session→Workspace, pod).
+It never touches CRDs or the `theia-cloud-base` chart: the **operator** creates
+the K8s resources (AppDefinition→Session→Workspace, pod).
 
-## Deux tokens à ne JAMAIS confondre
+## Two tokens to NEVER confuse
 
-| Token | Origine | Usage |
+| Token | Origin | Usage |
 |---|---|---|
-| `serviceAuthToken` (ex-`appId`) | secret statique du chart (config.js) | body du LaunchRequest — **indépendant de l'IdP** |
-| token OIDC (`access_token`/`id_token`) | Dex, via oidc-client-ts | `Authorization: Bearer`, validé par `quarkus.oidc` côté service |
+| `serviceAuthToken` (ex-`appId`) | static chart secret (config.js) | LaunchRequest body — **independent of the IdP** |
+| OIDC token (`access_token`/`id_token`) | Dex, via oidc-client-ts | `Authorization: Bearer`, validated by `quarkus.oidc` on the service side |
 
-## Décisions figées (ne pas changer sans demander)
+## Fixed decisions (do not change without asking)
 
-1. **Lib OIDC** : `oidc-client-ts` (Authorization Code + PKCE, client public). Pas
-   de keycloak-js, pas de wrapper React supplémentaire.
-2. **Auth isolée** : tout le code IdP-spécifique est derrière l'interface
-   `AuthProvider` (`src/auth/`). `OidcAuthProvider` est le SEUL fichier qui connaît
-   l'IdP. App.tsx et les composants n'en dépendent pas.
-3. **Config runtime** : `window.theiaCloudConfig` (fichier `config.js` chargé par
-   index.html AVANT le bundle). Champs auth = `oidc*` (pas `keycloak*`).
-4. **Champs `oidc*`** : `useOidc`, `oidcAuthority`, `oidcClientId`, `oidcScope`
-   (défaut `openid email profile`), `oidcTokenType` (défaut `access_token`).
-5. **Token Bearer** : `access_token` par défaut, basculable en `id_token` via
-   `oidcTokenType` SANS rebuild — à aligner sur ce que valide le service.
-6. **Version** : `@eclipse-theiacloud/common` épinglé sur le `theia_cloud_version`
-   de l'IaC (actuellement `1.2.0`). Ne pas désynchroniser.
+1. **OIDC lib**: `oidc-client-ts` (Authorization Code + PKCE, public client). No
+   keycloak-js, no extra React wrapper.
+2. **Isolated auth**: all IdP-specific code is behind the `AuthProvider` interface
+   (`src/auth/`). `OidcAuthProvider` is the ONLY file that knows the IdP. App.tsx
+   and components do not depend on it.
+3. **Runtime config**: `window.theiaCloudConfig` (file `config.js` loaded by
+   index.html BEFORE the bundle). Auth fields = `oidc*` (not `keycloak*`).
+4. **`oidc*` fields**: `useOidc`, `oidcAuthority`, `oidcClientId`, `oidcScope`
+   (default `openid email profile`), `oidcTokenType` (default `access_token`).
+5. **Bearer token**: `access_token` by default, switchable to `id_token` via
+   `oidcTokenType` WITHOUT a rebuild — must match what the service validates.
+6. **Version**: `@eclipse-theiacloud/common` pinned to the `theia_cloud_version`
+   from the IaC (currently `1.2.0`). Do not desynchronize.
 
 ## Structure
 
 ```
-index.html                 charge ./config.js puis le bundle (script non-module, voir vite.config)
+index.html                 loads ./config.js then the bundle (non-module script, see vite.config)
 public/
-  config.example.js        modèle de config runtime (config.js réel = gitignoré / monté par Helm)
-  silent-renew.html         iframe de renouvellement silencieux OIDC (oidc-client-ts UMD via CDN)
-  logo.svg                  placeholder (remplaçable)
+  config.example.js        runtime config template (real config.js = git-ignored / mounted by Helm)
+  silent-renew.html         OIDC silent renewal iframe (oidc-client-ts UMD via CDN)
+  logo.svg                  placeholder (replaceable)
 src/
-  main.tsx                 monte <App/> ; le callback OIDC est finalisé dans useAuth/init
-  App.tsx                  forké upstream : login (useAuth) + lancement de session
+  main.tsx                 mounts <App/>; OIDC callback is finalized in useAuth/init
+  App.tsx                  forked from upstream: login (useAuth) + session launch
   auth/
-    config.ts              getOidcConfig() lit window.theiaCloudConfig (cast, voir piège ci-dessous)
+    config.ts              getOidcConfig() reads window.theiaCloudConfig (cast, see pitfall below)
     AuthProvider.ts        interface init/login/logout/getToken
-    OidcAuthProvider.ts    impl. oidc-client-ts (UserManager, PKCE, callback dans init())
-    useAuth.ts             hook React, provider singleton module-level
-  components/              repris de l'upstream ; SEUL Header diffère (logout = fonction)
+    OidcAuthProvider.ts    oidc-client-ts impl (UserManager, PKCE, callback in init())
+    useAuth.ts             React hook, module-level singleton provider
+  components/              taken from upstream; ONLY Header differs (logout = function)
 Dockerfile                 multi-stage node:20 → nginx-unprivileged:8080
-nginx.conf                 fallback SPA (try_files → index.html) pour /callback ; config.js no-cache
+nginx.conf                 SPA fallback (try_files → index.html) for /callback; config.js no-cache
 deploy/
-  landing-page-config-map.yaml.j2  ConfigMap générant config.js (champs oidc*)
-  values-overrides.md      points de branchement IaC : service Quarkus, oauth2-proxy, static clients Dex
+  landing-page-config-map.yaml.j2  ConfigMap generating config.js (oidc* fields)
+  values-overrides.md      IaC integration points: Quarkus service, oauth2-proxy, Dex static clients
 ```
 
-## Pièges (lire avant de coder)
+## Pitfalls (read before coding)
 
-- **Type de `window.theiaCloudConfig`** : `@eclipse-theiacloud/common` le déclare
-  déjà globalement (champs theia-cloud seulement). NE PAS redéclarer le global
-  (conflit TS) — lire nos champs `oidc*` via un cast (`as unknown as RawOidcConfig`),
-  comme dans `src/auth/config.ts`.
-- **Règle des hooks React** : tous les hooks d'App.tsx sont appelés AVANT tout early
-  return. Le cas `config === undefined` est traité après. eslint
-  (`react-hooks/rules-of-hooks`) échoue sinon.
-- **config.js ne doit pas être bundlé** : `assetsInlineLimit: 0` dans vite.config,
-  et le `<script src="./config.js">` reste non-module (warning de build attendu et
-  voulu). Il est monté au runtime, pas au build.
+- **Type of `window.theiaCloudConfig`**: `@eclipse-theiacloud/common` already declares
+  it globally (theia-cloud fields only). DO NOT re-declare the global (TS conflict) —
+  read our `oidc*` fields via a cast (`as unknown as RawOidcConfig`), as done in
+  `src/auth/config.ts`.
+- **React hook rules**: all hooks in App.tsx are called BEFORE any early return.
+  The `config === undefined` case is handled afterwards. eslint
+  (`react-hooks/rules-of-hooks`) will fail otherwise.
+- **config.js must not be bundled**: `assetsInlineLimit: 0` in vite.config, and
+  the `<script src="./config.js">` remains non-module (expected build warning,
+  by design). It is mounted at runtime, not at build time.
 
-## Commandes (depuis la racine du dépôt)
+## Commands (from the repository root)
 
 ```bash
 npm ci
-cp public/config.example.js public/config.js   # dev : adapter oidcAuthority + serviceUrl
-npm run dev                                     # serveur Vite
+cp public/config.example.js public/config.js   # dev: adapt oidcAuthority + serviceUrl
+npm run dev                                     # Vite dev server
 npm run build                                   # tsc + vite → dist/
-npm run lint                                    # eslint, 0 warning toléré (--max-warnings 0)
+npm run lint                                    # eslint, 0 warnings allowed (--max-warnings 0)
 ```
 
-Avant tout commit : `npm run build && npm run lint` doivent passer.
+Before any commit: `npm run build && npm run lint` must pass.
 
-## Vérification e2e (cf. plan)
+## End-to-end verification (see plan)
 
-Point critique : déclencher un lancement, vérifier que `POST /service` renvoie 200
-(token Bearer accepté). Si 401, basculer `oidcTokenType` (access_token ↔ id_token)
-dans config.js et/ou vérifier `auth-server-url`/`client-id` du service. C'est ICI
-qu'on tranche la valeur définitive de `oidcTokenType`.
+Critical point: trigger a launch, verify that `POST /service` returns 200
+(Bearer token accepted). If 401, switch `oidcTokenType` (access_token ↔ id_token)
+in config.js and/or check `auth-server-url`/`client-id` on the service. This is
+WHERE the definitive value of `oidcTokenType` is decided.
 
-## Hors périmètre de ce dépôt
+## Out of scope for this repository
 
-- Déploiement de Dex (rôle Ansible), static clients, migration `platform_deps`.
-- Configuration `quarkus.oidc` du service et de l'oauth2-proxy des instances —
-  seulement **documentée** dans `deploy/values-overrides.md`.
-- Mise à jour de la décision #4 du CLAUDE.md racine de l'IaC.
+- Dex deployment (Ansible role), static clients, `platform_deps` migration.
+- `quarkus.oidc` configuration of the service and oauth2-proxy for IDE instances —
+  only **documented** in `deploy/values-overrides.md`.
+- Update of decision #4 in the IaC root CLAUDE.md.
