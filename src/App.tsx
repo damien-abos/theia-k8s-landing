@@ -20,11 +20,20 @@ import { LaunchApp } from './components/LaunchApp';
 import { Loading } from './components/Loading';
 import { LoginButton } from './components/LoginButton';
 
-let initialized = false;
-let initialAppName = '';
-let initialAppDefinition = '';
+function getInitialAppSelection(config: ReturnType<typeof getTheiaCloudConfig>): { appName: string; appDefinition: string } {
+  const fallbackName = config?.appName ?? '';
+  const fallbackDef = config?.appDefinition ?? '';
+  if (!config) return { appName: fallbackName, appDefinition: fallbackDef };
 
-function App(): JSX.Element {
+  const urlParams = new URLSearchParams(window.location.search);
+  const defaultSelection = urlParams.get('appDef') ?? urlParams.get('appdef');
+  if (defaultSelection && isDefaultSelectionValueValid(defaultSelection, config.appDefinition, config.additionalApps)) {
+    return { appName: defaultSelection, appDefinition: defaultSelection };
+  }
+  return { appName: fallbackName, appDefinition: fallbackDef };
+}
+
+function App() {
   // Tous les hooks sont appelés inconditionnellement, AVANT tout early return
   // (règle des hooks React). Le cas `config === undefined` est traité ensuite.
   const [config] = useState(() => getTheiaCloudConfig());
@@ -34,43 +43,12 @@ function App(): JSX.Element {
   // Authentification : remplace le bloc keycloak-js de la landing page upstream.
   const { email, token, enabled: useOidc, login, logout } = useAuth();
 
-  if (config && !initialized) {
-    initialAppName = config.appName;
-    initialAppDefinition = config.appDefinition;
-  }
-
-  const [selectedAppName, setSelectedAppName] = useState(initialAppName);
-  const [selectedAppDefinition, setSelectedAppDefinition] = useState(initialAppDefinition);
+  const [selectedAppName, setSelectedAppName] = useState(() => getInitialAppSelection(config).appName);
+  const [selectedAppDefinition, setSelectedAppDefinition] = useState(() => getInitialAppSelection(config).appDefinition);
 
   useEffect(() => {
-    if (config && !initialized) {
-      initialized = true;
-      const element = document.getElementById('selectapp');
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('appDef') || urlParams.has('appdef')) {
-        const defaultSelection = urlParams.get('appDef') || urlParams.get('appdef');
-        if (
-          defaultSelection !== null &&
-          isDefaultSelectionValueValid(defaultSelection, config.appDefinition, config.additionalApps)
-        ) {
-          if (element !== null && config.additionalApps && config.additionalApps.length > 0) {
-            (element as HTMLSelectElement).value = defaultSelection;
-            setSelectedAppName(
-              (element as HTMLSelectElement).options[(element as HTMLSelectElement).selectedIndex].text
-            );
-            setSelectedAppDefinition((element as HTMLSelectElement).value);
-          } else {
-            setSelectedAppDefinition(defaultSelection);
-            setSelectedAppName(defaultSelection);
-          }
-          console.log('Set ' + defaultSelection + ' as default selection');
-        }
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  document.title = `${selectedAppName} - Try Now`;
+    document.title = `${selectedAppName} - Try Now`;
+  }, [selectedAppName]);
 
   if (config === undefined) {
     return (

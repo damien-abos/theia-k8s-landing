@@ -7,7 +7,7 @@ interface LoadingProps {
   text?: string;
 }
 
-export const Loading: React.FC<LoadingProps> = ({ logoFileExtension, text }: LoadingProps): JSX.Element => {
+export const Loading: React.FC<LoadingProps> = ({ logoFileExtension, text }: LoadingProps) => {
   const calculatedText =
     text ?? 'We are launching a dedicated session for you, hang in tight, this might take up to 3 minutes.';
   return (

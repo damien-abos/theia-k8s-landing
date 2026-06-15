@@ -10,7 +10,7 @@ interface HeaderProps {
   logout: (() => void) | undefined;
 }
 
-export const Header: React.FC<HeaderProps> = ({ email, authenticate, logout }: HeaderProps): JSX.Element => (
+export const Header: React.FC<HeaderProps> = ({ email, authenticate, logout }: HeaderProps) => (
   <div className='header'>
     {email ? (
       <p>{email}</p>
