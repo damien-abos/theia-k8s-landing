@@ -82,7 +82,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request' && secrets.DOCKERHUB_USERNAME != ''
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v4
         with:
           registry: docker.io
@@ -95,7 +95,7 @@ jobs:
         with:
           images: |
             ${{ env.GHCR_IMAGE }}
-            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ github.event_name != 'pull_request' && secrets.DOCKERHUB_USERNAME != '' }}
+            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ github.event_name != 'pull_request' }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -126,7 +126,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Update Docker Hub description
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && secrets.DOCKERHUB_USERNAME != ''
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
