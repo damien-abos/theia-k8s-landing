@@ -1,5 +1,5 @@
 # --- Build stage ---
-FROM node:20-alpine AS build-stage
+FROM node:26-alpine AS build-stage
 WORKDIR /app
 
 # Cache des dépendances : ne re-télécharge que si le manifeste change.
